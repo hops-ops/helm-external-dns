@@ -1,0 +1,41 @@
+apiVersion: helm.hops.ops.com.ai/v1alpha1
+kind: ExternalDNS
+metadata:
+  name: external-dns
+  namespace: default
+spec:
+  clusterName: production-cluster
+  namespace: external-dns
+  labels:
+    team: platform
+    environment: production
+  providerConfigRef:
+    name: production-cluster
+    kind: ProviderConfig
+  values:
+    # AWS Route53 provider
+    provider:
+      name: aws
+    # Domain filter
+    domainFilters:
+      - example.com
+    # Sync policy - sync allows deletion
+    policy: sync
+    # TXT record prefix for ownership
+    txtPrefix: externaldns-
+    # Sources to watch
+    sources:
+      - service
+      - ingress
+    # Use Pod Identity / IRSA for AWS auth
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/external-dns
+    # Resources
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi

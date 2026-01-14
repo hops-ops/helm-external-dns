@@ -1,0 +1,53 @@
+# code: language=yaml
+#
+# Helm release for external-dns - automatic DNS record management
+#
+# Defaults:
+# - Sources: service, ingress
+# - Policy: upsert-only (safe default, won't delete records)
+# - Provider must be configured via values
+#
+
+{{- $e := $state.externaldns }}
+
+---
+apiVersion: helm.m.crossplane.io/v1beta1
+kind: Release
+metadata:
+  name: {{ $e.releaseName }}
+  annotations:
+    {{ setResourceNameAnnotation "helm-release-external-dns" }}
+  labels: {{ $e.labels | toJson }}
+spec:
+  managementPolicies: {{ $e.managementPolicies | toJson }}
+  forProvider:
+    chart:
+      name: external-dns
+      repository: https://kubernetes-sigs.github.io/external-dns/
+      version: 1.20.0
+    namespace: {{ $e.namespace }}
+    {{- if $e.overrideAllValues }}
+    values:
+      {{- toYaml $e.overrideAllValues | nindent 6 }}
+    {{- else }}
+    values:
+      fullnameOverride: external-dns
+      nameOverride: external-dns
+      # DNS record sources
+      sources:
+        - service
+        - ingress
+      # Safe default: only create/update, never delete
+      policy: upsert-only
+      # Registry for tracking ownership
+      registry: txt
+      # Default interval
+      interval: 1m
+      {{- if $e.values }}
+      {{- toYaml $e.values | nindent 6 }}
+      {{- end }}
+    {{- end }}
+  rollbackLimit: 3
+  providerConfigRef:
+    name: {{ $e.providerConfigRef.name }}
+    kind: {{ $e.providerConfigRef.kind }}

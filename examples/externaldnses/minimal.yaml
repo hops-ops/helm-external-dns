@@ -1,0 +1,11 @@
+apiVersion: helm.hops.ops.com.ai/v1alpha1
+kind: ExternalDNS
+metadata:
+  name: external-dns
+  namespace: default
+spec:
+  clusterName: my-cluster
+  values:
+    # Provider configuration required
+    provider:
+      name: aws

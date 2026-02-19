@@ -31,8 +31,6 @@ spec:
       {{- toYaml $e.overrideAllValues | nindent 6 }}
     {{- else }}
     values:
-      fullnameOverride: external-dns
-      nameOverride: external-dns
       # DNS record sources
       sources:
         - service
